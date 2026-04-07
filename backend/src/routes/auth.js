@@ -2,22 +2,11 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const db = require('../db');
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 15000
-  });
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 // Register
@@ -141,9 +130,9 @@ router.post('/forgot-password', async (req, res) => {
     const appUrl = process.env.APP_URL || 'http://localhost:8080';
     const resetUrl = `${appUrl}/reset-password.html?token=${token}`;
 
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"WineAV" <${process.env.EMAIL_USER}>`,
+    const resend = getResend();
+    await resend.emails.send({
+      from: 'WineAV <onboarding@resend.dev>',
       to: email.trim().toLowerCase(),
       subject: 'Recuperação de password – WineAV',
       html: `
