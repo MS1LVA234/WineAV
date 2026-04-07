@@ -1,4 +1,4 @@
-try { require('dotenv').config(); } catch {}
+try { require('dotenv').config({ path: require('path').join(__dirname, '../.env') }); } catch {}
 const express = require('express');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
