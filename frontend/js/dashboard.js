@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('username-display').textContent = currentUser.username;
   if (currentUser.avatar) {
     const navAvatar = document.getElementById('nav-avatar');
-    if (navAvatar) navAvatar.src = currentUser.avatar;
+    if (navAvatar) { navAvatar.src = currentUser.avatar; navAvatar.style.display = ''; }
   }
   if (currentUser.role === 'admin') {
     const adminLink = document.getElementById('admin-nav-link');
