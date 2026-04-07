@@ -1,7 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const db = require('../db');
+
+function createTransporter() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+}
 
 // Register
 router.post('/register', async (req, res) => {
@@ -90,6 +102,95 @@ router.get('/me', (req, res) => {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
   res.json({ user: { id: req.session.userId, username: req.session.username } });
+});
+
+// Forgot password — envia email com link de recuperação
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email é obrigatório.' });
+
+  try {
+    const [rows] = await db.execute(
+      'SELECT id, username FROM users WHERE email = ?',
+      [email.trim().toLowerCase()]
+    );
+
+    // Responde sempre com sucesso para não revelar se email existe
+    if (rows.length === 0) {
+      return res.json({ success: true });
+    }
+
+    const user = rows[0];
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await db.execute(
+      'DELETE FROM password_reset_tokens WHERE user_id = ?',
+      [user.id]
+    );
+    await db.execute(
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+      [user.id, token, expires]
+    );
+
+    const appUrl = process.env.APP_URL || 'http://localhost:8080';
+    const resetUrl = `${appUrl}/reset-password.html?token=${token}`;
+
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"WineAV" <${process.env.EMAIL_USER}>`,
+      to: email.trim().toLowerCase(),
+      subject: 'Recuperação de password – WineAV',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2 style="color:#7B2D3E">🍷 WineAV</h2>
+          <p>Olá <strong>${user.username}</strong>,</p>
+          <p>Recebemos um pedido para recuperar a tua password.</p>
+          <p>Clica no botão abaixo para definir uma nova password. O link é válido durante <strong>1 hora</strong>.</p>
+          <a href="${resetUrl}" style="display:inline-block;background:#7B2D3E;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;margin:16px 0">Recuperar password</a>
+          <p style="color:#888;font-size:0.85rem">Se não pediste isto, ignora este email.</p>
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Erro ao enviar email. Tenta novamente.' });
+  }
+});
+
+// Reset password — valida token e define nova password
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Dados inválidos.' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password deve ter pelo menos 6 caracteres.' });
+
+  try {
+    const [rows] = await db.execute(
+      'SELECT user_id, expires_at FROM password_reset_tokens WHERE token = ?',
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: 'Link inválido ou expirado.' });
+    }
+
+    const { user_id, expires_at } = rows[0];
+    if (new Date() > new Date(expires_at)) {
+      await db.execute('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+      return res.status(400).json({ error: 'Link expirado. Pede um novo.' });
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+    await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashed, user_id]);
+    await db.execute('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
 });
 
 module.exports = router;
