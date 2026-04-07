@@ -224,13 +224,12 @@ input[type=range].wine-range {
 /* Top 10 */
 .top10-item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  flex-direction: column;
   background: #fff;
   border-radius: 12px;
   margin-bottom: 0.6rem;
   box-shadow: 0 2px 8px rgba(123,45,62,0.08);
+  overflow: hidden;
 }
 
 .rank-badge {

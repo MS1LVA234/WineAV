@@ -150,18 +150,36 @@ function renderTop10Item(w, rank) {
   const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
   const rankLabel = rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank;
 
+  const detailRows = [
+    w.castas ? `<div class="wine-detail-item"><span class="wine-detail-label">Castas</span><span>${escapeHtml(w.castas)}</span></div>` : '',
+    w.tempo_estagio ? `<div class="wine-detail-item"><span class="wine-detail-label">Estágio</span><span>${escapeHtml(w.tempo_estagio)}</span></div>` : '',
+    w.volume_alcool ? `<div class="wine-detail-item"><span class="wine-detail-label">Álcool</span><span>${w.volume_alcool}%</span></div>` : '',
+    w.preco ? `<div class="wine-detail-item"><span class="wine-detail-label">Preço</span><span>€${parseFloat(w.preco).toFixed(2)}</span></div>` : '',
+    w.chosen_by_name ? `<div class="wine-detail-item"><span class="wine-detail-label">Escolhido por</span><span>${escapeHtml(w.chosen_by_name)}</span></div>` : '',
+    `<div class="wine-detail-item"><span class="wine-detail-label">Adicionado por</span><span>${escapeHtml(w.added_by_name)}</span></div>`,
+  ].filter(Boolean).join('');
+
   return `
-    <div class="top10-item">
-      <div class="rank-badge ${rankClass}">${rankLabel}</div>
-      <div class="top10-wine-info">
-        <div class="top10-wine-name">${escapeHtml(w.name)}</div>
-        <div class="top10-wine-sub">
-          ${[w.region, w.year].filter(Boolean).join(' • ') || ''}
-          ${w.chosen_by_name ? ` · Escolhido por ${escapeHtml(w.chosen_by_name)}` : ''}
+    <div class="top10-item flex-column align-items-stretch" style="padding:0;">
+      <div class="d-flex align-items-center gap-2" style="padding:0.75rem 1rem;">
+        <div class="rank-badge ${rankClass}">${rankLabel}</div>
+        <div class="top10-wine-info" style="flex:1;min-width:0;">
+          <div class="top10-wine-name">${escapeHtml(w.name)}</div>
+          <div class="top10-wine-sub">${[w.region, w.year].filter(Boolean).join(' • ') || ''}</div>
+          <small class="text-muted">${w.rating_count} avalia${w.rating_count !== 1 ? 'ções' : 'ção'}</small>
         </div>
-        <small class="text-muted">${w.rating_count} avalia${w.rating_count !== 1 ? 'ções' : 'ção'}</small>
+        <div class="d-flex flex-column align-items-end gap-1">
+          <div class="top10-rating">${parseFloat(w.avg_rating).toFixed(1)}</div>
+          <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#top10-details-${w.id}" style="font-size:0.7rem;padding:2px 8px;">
+            Detalhes
+          </button>
+        </div>
       </div>
-      <div class="top10-rating">${parseFloat(w.avg_rating).toFixed(1)}</div>
+      <div class="collapse" id="top10-details-${w.id}">
+        <div style="padding:0 1rem 0.75rem 1rem;border-top:1px solid rgba(0,0,0,0.07);">
+          ${detailRows}
+        </div>
+      </div>
     </div>`;
 }
 
