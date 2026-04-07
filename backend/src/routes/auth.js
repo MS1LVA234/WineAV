@@ -239,14 +239,21 @@ router.post('/setup-admin', async (req, res) => {
   }
 });
 
-function requireAdmin(req, res, next) {
+async function requireAdmin(req, res, next) {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
-  if (req.session.userRole !== 'admin') {
-    return res.status(403).json({ error: 'Acesso negado.' });
+  // Verificar diretamente na DB (não depende da sessão estar atualizada)
+  try {
+    const [rows] = await db.execute("SELECT role FROM users WHERE id = ?", [req.session.userId]);
+    if (rows.length === 0 || rows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Acesso negado.' });
+    }
+    req.session.userRole = 'admin';
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno.' });
   }
-  next();
 }
 
 // Listar todos os utilizadores (admin)
