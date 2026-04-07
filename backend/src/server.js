@@ -1,4 +1,5 @@
-try { require('dotenv').config({ path: require('path').join(__dirname, '../.env') }); } catch {}
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiadas tentativas. Tenta novamente em 15 minutos.' }
