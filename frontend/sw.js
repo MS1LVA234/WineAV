@@ -1,5 +1,5 @@
 // WineAV Service Worker
-const CACHE_NAME = 'wineav-v2';
+const CACHE_NAME = 'wineav-v3';
 
 // Assets to cache on install (app shell)
 const SHELL_ASSETS = [
@@ -8,6 +8,10 @@ const SHELL_ASSETS = [
   '/room.html',
   '/add-wine.html',
   '/edit-wine.html',
+  '/profile.html',
+  '/admin.html',
+  '/forgot-password.html',
+  '/reset-password.html',
   '/css/style.css',
   '/js/api.js',
   '/js/auth.js',
@@ -15,6 +19,8 @@ const SHELL_ASSETS = [
   '/js/room.js',
   '/js/add-wine.js',
   '/js/edit-wine.js',
+  '/js/profile.js',
+  '/js/admin.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
