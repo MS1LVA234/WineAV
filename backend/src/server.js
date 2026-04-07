@@ -44,11 +44,19 @@ app.get(/^(?!\/api).*$/, (req, res) => {
 
 // Run DB migrations and start server
 async function startServer() {
-  // Add role column if it doesn't exist
-  await db.execute(`
-    ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS role ENUM('user','admin') DEFAULT 'user'
-  `).catch(() => {}); // ignore if already exists or DB doesn't support IF NOT EXISTS
+  // Add role column if it doesn't exist (compatible with older MySQL)
+  try {
+    const [cols] = await db.execute(`
+      SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role'
+    `);
+    if (cols.length === 0) {
+      await db.execute(`ALTER TABLE users ADD COLUMN role ENUM('user','admin') DEFAULT 'user'`);
+      console.log('Migration: added role column to users');
+    }
+  } catch (err) {
+    console.error('Migration error:', err.message);
+  }
 
   app.listen(PORT, () => {
     console.log(`WineAV server running at http://localhost:${PORT}`);
