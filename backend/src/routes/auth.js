@@ -85,9 +85,12 @@ router.post('/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.username = user.username;
 
-    res.json({
-      success: true,
-      user: { id: user.id, username: user.username, email: user.email }
+    req.session.save((err) => {
+      if (err) console.error('Session save error:', err);
+      res.json({
+        success: true,
+        user: { id: user.id, username: user.username, email: user.email }
+      });
     });
   } catch (err) {
     res.status(500).json({ error: 'Erro interno do servidor.' });
@@ -112,7 +115,9 @@ router.get('/me', async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: 'Utilizador não encontrado.' });
     res.json({ user: rows[0] });
   } catch (err) {
-    res.status(500).json({ error: 'Erro interno do servidor.' });
+    console.error('GET /me error:', err);
+    // Fallback: usa dados da sessão se a BD falhar
+    res.json({ user: { id: req.session.userId, username: req.session.username, email: null, avatar: null } });
   }
 });
 
