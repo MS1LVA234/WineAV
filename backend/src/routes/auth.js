@@ -221,6 +221,23 @@ router.put('/profile/password', async (req, res) => {
 
 // ── ADMIN ──────────────────────────────────────────────────────────────────
 
+// Setup inicial: torna um email admin, só funciona se não existir nenhum admin ainda
+router.post('/setup-admin', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email obrigatório.' });
+  try {
+    const [admins] = await db.execute("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+    if (admins.length > 0) {
+      return res.status(403).json({ error: 'Já existe um admin. Acesso negado.' });
+    }
+    const [result] = await db.execute("UPDATE users SET role = 'admin' WHERE email = ?", [email.trim().toLowerCase()]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Email não encontrado.' });
+    res.json({ success: true, message: `${email} é agora admin.` });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno.' });
+  }
+});
+
 function requireAdmin(req, res, next) {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Não autenticado.' });

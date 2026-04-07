@@ -3,6 +3,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const db = require('./db');
 
 const authRoutes = require('./routes/auth');
 const roomRoutes = require('./routes/rooms');
@@ -41,6 +42,17 @@ app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`WineAV server running at http://localhost:${PORT}`);
-});
+// Run DB migrations and start server
+async function startServer() {
+  // Add role column if it doesn't exist
+  await db.execute(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role ENUM('user','admin') DEFAULT 'user'
+  `).catch(() => {}); // ignore if already exists or DB doesn't support IF NOT EXISTS
+
+  app.listen(PORT, () => {
+    console.log(`WineAV server running at http://localhost:${PORT}`);
+  });
+}
+
+startServer();
