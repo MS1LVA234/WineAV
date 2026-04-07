@@ -99,6 +99,7 @@ router.get('/me', async (req, res) => {
   try {
     const [rows] = await db.execute('SELECT id, username, email, avatar, role FROM users WHERE id = ?', [req.session.userId]);
     if (rows.length === 0) return res.status(401).json({ error: 'Não autenticado.' });
+    req.session.userRole = rows[0].role || 'user';
     res.json({ user: rows[0] });
   } catch (err) {
     res.json({ user: { id: req.session.userId, username: req.session.username, email: null, avatar: null } });
