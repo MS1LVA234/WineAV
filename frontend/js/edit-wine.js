@@ -1,0 +1,124 @@
+// Edit wine form
+let currentUser = null;
+let wineId = null;
+let roomId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  wineId = getParam('wineId');
+  roomId = getParam('roomId');
+  if (!wineId || !roomId) { window.location.href = '/dashboard.html'; return; }
+
+  currentUser = await checkAuth();
+  if (!currentUser) return;
+
+  document.getElementById('username-display').textContent = currentUser.username;
+  document.getElementById('back-link').href = `/room.html?id=${roomId}`;
+
+  await loadRoomAndWine();
+  setupForm();
+  setupDelete();
+  setupLogout();
+});
+
+async function loadRoomAndWine() {
+  try {
+    const [roomData, wineData] = await Promise.all([
+      apiCall('GET', `/rooms/${roomId}`),
+      apiCall('GET', `/rooms/${roomId}/wines/${wineId}`)
+    ]);
+
+    if (!roomData || !wineData) return;
+
+    document.getElementById('room-name-header').textContent = roomData.room.name;
+    document.title = `Editar Vinho – ${roomData.room.name}`;
+
+    // Populate members select
+    const select = document.getElementById('chosen_by');
+    select.innerHTML = '<option value="">— Nenhum —</option>';
+    roomData.members.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.username;
+      if (m.id === currentUser.id) opt.textContent += ' (eu)';
+      select.appendChild(opt);
+    });
+
+    // Fill form with wine data
+    const w = wineData.wine;
+    const form = document.getElementById('editWineForm');
+    form.name.value = w.name || '';
+    form.region.value = w.region || '';
+    form.year.value = w.year || '';
+    form.castas.value = w.castas || '';
+    form.tempo_estagio.value = w.tempo_estagio || '';
+    form.volume_alcool.value = w.volume_alcool || '';
+    form.preco.value = w.preco || '';
+    if (w.chosen_by) select.value = w.chosen_by;
+
+    // Only show delete button to the user who added the wine
+    if (w.added_by === currentUser.id) {
+      document.getElementById('delete-btn').classList.remove('d-none');
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function setupForm() {
+  const form = document.getElementById('editWineForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type=submit]');
+    const errEl = document.getElementById('form-error');
+    errEl.classList.add('d-none');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> A guardar...';
+
+    const payload = {
+      name: form.name.value.trim(),
+      region: form.region.value.trim() || null,
+      year: form.year.value || null,
+      castas: form.castas.value.trim() || null,
+      tempo_estagio: form.tempo_estagio.value.trim() || null,
+      volume_alcool: form.volume_alcool.value || null,
+      preco: form.preco.value || null,
+      chosen_by: form.chosen_by.value || null
+    };
+
+    try {
+      const data = await apiCall('PUT', `/rooms/${roomId}/wines/${wineId}`, payload);
+      if (data) {
+        showToast('Vinho atualizado com sucesso!');
+        setTimeout(() => { window.location.href = `/room.html?id=${roomId}`; }, 800);
+      }
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Guardar Alterações';
+    }
+  });
+}
+
+function setupDelete() {
+  document.getElementById('delete-btn').addEventListener('click', async () => {
+    if (!confirm('Tens a certeza que queres eliminar este vinho? Esta ação não pode ser desfeita.')) return;
+
+    try {
+      await apiCall('DELETE', `/rooms/${roomId}/wines/${wineId}`);
+      showToast('Vinho eliminado.');
+      setTimeout(() => { window.location.href = `/room.html?id=${roomId}`; }, 800);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+}
+
+function setupLogout() {
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await apiCall('POST', '/auth/logout');
+    clearUser();
+    window.location.href = '/index.html';
+  });
+}

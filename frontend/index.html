@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>WineAV – Entrar</title>
+  <meta name="theme-color" content="#7B2D3E">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WineAV">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-logo">🍷</div>
+    <h1 class="auth-title">Wine<span>AV</span></h1>
+    <p class="auth-subtitle">A sua lista de vinhos partilhada</p>
+
+    <div class="auth-card">
+      <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item flex-fill text-center" role="presentation">
+          <button class="nav-link active w-100" data-bs-toggle="tab" data-bs-target="#login-tab" type="button">Entrar</button>
+        </li>
+        <li class="nav-item flex-fill text-center" role="presentation">
+          <button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#register-tab" type="button">Registar</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Login -->
+        <div class="tab-pane fade show active" id="login-tab">
+          <form id="loginForm" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="login-email">Email</label>
+              <input type="email" class="form-control" id="login-email" name="email" placeholder="o_teu@email.com" required autocomplete="email">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="login-password">Password</label>
+              <input type="password" class="form-control" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <div id="loginError" class="alert alert-danger py-2 d-none"></div>
+            <button type="submit" class="btn btn-wine w-100 py-2 mt-1">Entrar</button>
+          </form>
+        </div>
+
+        <!-- Register -->
+        <div class="tab-pane fade" id="register-tab">
+          <form id="registerForm" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="reg-username">Username</label>
+              <input type="text" class="form-control" id="reg-username" name="username" placeholder="O teu nome" required minlength="3" maxlength="50" autocomplete="username">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="reg-email">Email</label>
+              <input type="email" class="form-control" id="reg-email" name="email" placeholder="o_teu@email.com" required autocomplete="email">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="reg-password">Password</label>
+              <input type="password" class="form-control" id="reg-password" name="password" placeholder="Mín. 6 caracteres" required minlength="6" autocomplete="new-password">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="reg-confirm">Confirmar Password</label>
+              <input type="password" class="form-control" id="reg-confirm" name="confirmPassword" placeholder="Repete a password" required autocomplete="new-password">
+            </div>
+            <div id="registerError" class="alert alert-danger py-2 d-none"></div>
+            <button type="submit" class="btn btn-wine w-100 py-2 mt-1">Criar Conta</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

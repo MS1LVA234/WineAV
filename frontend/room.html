@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>WineAV – Sala</title>
+  <meta name="theme-color" content="#7B2D3E">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WineAV">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-wine sticky-top">
+    <div class="container-fluid">
+      <a href="/dashboard.html" class="text-white text-decoration-none" style="font-size:1.2rem;">← </a>
+      <span class="navbar-brand mx-auto" id="room-name">Sala</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white opacity-75 small" id="username-display"></span>
+        <button id="logoutBtn" class="btn btn-sm btn-outline-light">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Room header -->
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h4 id="room-name-header">–</h4>
+        <p>
+          <span id="member-count">–</span> membros &nbsp;|&nbsp;
+          Código: <span class="invite-code" id="invite-code" style="font-size:0.8rem;padding:2px 7px;"></span>
+        </p>
+      </div>
+      <div class="d-flex flex-column gap-1">
+        <button id="members-btn" class="btn btn-sm btn-outline-light">👥 Membros</button>
+        <button id="copy-invite-btn" class="btn btn-sm btn-outline-light">📋 Copiar código</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs px-3 bg-white shadow-sm sticky-top" style="top:56px;z-index:50;" role="tablist">
+    <li class="nav-item flex-fill text-center" role="presentation">
+      <button id="tab-wines" class="nav-link active w-100" data-bs-toggle="tab" data-bs-target="#panel-wines" type="button">
+        🍾 Lista
+      </button>
+    </li>
+    <li class="nav-item flex-fill text-center" role="presentation">
+      <button id="tab-top10" class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#panel-top10" type="button">
+        🏆 Top 10
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Wines list -->
+    <div class="tab-pane fade show active" id="panel-wines">
+      <div class="container-fluid px-3 pt-3">
+        <div id="wines-container"></div>
+        <div class="bottom-spacer"></div>
+      </div>
+    </div>
+
+    <!-- Top 10 -->
+    <div class="tab-pane fade" id="panel-top10">
+      <div class="container-fluid px-3 pt-3">
+        <h6 class="text-muted fw-semibold mb-3">🏆 Top 10 – melhores médias</h6>
+        <div id="top10-container"></div>
+        <div class="bottom-spacer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB: Add wine -->
+  <a id="add-wine-fab" href="#" class="fab" title="Adicionar Vinho">+</a>
+
+  <!-- Rating Modal -->
+  <div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--wine-primary);color:#fff;border-bottom:none;">
+          <h5 class="modal-title">⭐ Avaliar Vinho</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <p class="fw-semibold mb-3" id="rating-modal-wine-name" style="color:var(--wine-primary);"></p>
+          <div class="rating-display-value" id="rating-display-value">5.0</div>
+          <div class="mb-1" style="color:var(--wine-gold);font-size:1.5rem;">★★★★★</div>
+          <small class="text-muted d-block mb-3">0 = Terrível &nbsp;•&nbsp; 10 = Perfeito</small>
+          <input type="range" class="form-range wine-range px-2" id="rating-slider" min="0" max="10" step="0.5" value="5">
+          <div class="d-flex justify-content-between">
+            <small class="text-muted">0</small>
+            <small class="text-muted">10</small>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-wine flex-fill" id="submit-rating-btn">Confirmar Avaliação</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ratings List Modal -->
+  <div class="modal fade" id="ratingsListModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--wine-primary);color:#fff;">
+          <h6 class="modal-title" id="ratings-list-title">Avaliações</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="ratings-list-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Members Modal -->
+  <div class="modal fade" id="membersModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--wine-primary);color:#fff;">
+          <h6 class="modal-title">👥 Membros da Sala</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="members-list-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    // Set FAB link with roomId
+    const rid = new URLSearchParams(window.location.search).get('id');
+    document.getElementById('add-wine-fab').href = `/add-wine.html?roomId=${rid}`;
+  </script>
+  <script src="/js/room.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
