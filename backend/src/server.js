@@ -1,8 +1,5 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const session = require('express-session');
-const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 const authRoutes = require('./routes/auth');
@@ -12,14 +9,6 @@ const ratingRoutes = require('./routes/ratings');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Demasiadas tentativas. Tenta novamente em 15 minutos.' }
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,7 +20,6 @@ app.use(session({
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax'
   }
 }));
@@ -41,7 +29,7 @@ const frontendPath = path.join(__dirname, '../../frontend');
 app.use(express.static(frontendPath));
 
 // API Routes
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/rooms/:roomId/wines', wineRoutes);
 app.use('/api/wines/:wineId/ratings', ratingRoutes);
