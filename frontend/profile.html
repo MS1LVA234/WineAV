@@ -27,31 +27,32 @@
 
   <div class="page-header">
     <h4>O Meu Perfil</h4>
-    <p>Altera a tua foto e password</p>
+    <p>Altera os teus dados e password</p>
   </div>
 
   <div class="container-fluid px-3" style="max-width:480px;">
 
-    <!-- Avatar -->
+    <!-- Dados pessoais -->
     <div class="card wine-card mb-3">
-      <div class="card-body text-center py-4">
-        <div class="mb-3 position-relative d-inline-block">
-          <img id="avatar-preview" src="" alt="Avatar"
-            style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--wine-primary);">
-          <label for="avatar-input" class="position-absolute bottom-0 end-0 btn btn-wine btn-sm rounded-circle p-1"
-            style="width:32px;height:32px;line-height:1;cursor:pointer;" title="Alterar foto">
-            ✏️
-          </label>
-        </div>
-        <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp" class="d-none">
-        <div class="fw-bold fs-5" id="profile-username">–</div>
-        <div class="text-muted small" id="profile-email">–</div>
-        <div id="avatar-error" class="alert alert-danger py-2 mt-2 d-none"></div>
-        <button id="avatar-save-btn" class="btn btn-wine mt-2 d-none px-4">Guardar foto</button>
+      <div class="card-body">
+        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">👤 Dados Pessoais</h6>
+        <form id="profile-info-form">
+          <div class="mb-3">
+            <label class="form-label" for="profile-username">Username</label>
+            <input type="text" class="form-control" id="profile-username" required minlength="3" maxlength="50" autocomplete="username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="profile-email">Email</label>
+            <input type="email" class="form-control" id="profile-email" required autocomplete="email">
+          </div>
+          <div id="info-error" class="alert alert-danger py-2 d-none"></div>
+          <div id="info-success" class="alert alert-success py-2 d-none">Dados atualizados com sucesso!</div>
+          <button type="submit" class="btn btn-wine w-100" id="info-save-btn">Guardar Dados</button>
+        </form>
       </div>
     </div>
 
-    <!-- Change password -->
+    <!-- Alterar password -->
     <div class="card wine-card mb-3">
       <div class="card-body">
         <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">🔒 Alterar Password</h6>
@@ -63,7 +64,6 @@
           <div class="mb-3">
             <label class="form-label" for="new-password">Nova password</label>
             <input type="password" class="form-control" id="new-password" required autocomplete="new-password">
-            <div class="form-text">Mín. 8 caracteres, maiúscula, minúscula, número e carácter especial.</div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="confirm-password">Confirmar nova password</label>

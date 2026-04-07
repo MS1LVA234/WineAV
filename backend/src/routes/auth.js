@@ -220,6 +220,33 @@ router.put('/profile/password', async (req, res) => {
   }
 });
 
+// Alterar dados pessoais (username e email)
+router.put('/profile/info', async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+  const { username, email } = req.body;
+  if (!username || !email) {
+    return res.status(400).json({ error: 'Username e email são obrigatórios.' });
+  }
+  if (username.length < 3 || username.length > 50) {
+    return res.status(400).json({ error: 'Username deve ter entre 3 e 50 caracteres.' });
+  }
+  try {
+    await db.execute(
+      'UPDATE users SET username = ?, email = ? WHERE id = ?',
+      [username.trim(), email.trim().toLowerCase(), req.session.userId]
+    );
+    req.session.username = username.trim();
+    res.json({ success: true });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Username ou email já existe.' });
+    }
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
 // ── ADMIN ──────────────────────────────────────────────────────────────────
 
 // Setup inicial: torna um email admin, só funciona se não existir nenhum admin ainda
@@ -292,29 +319,6 @@ router.put('/admin/users/:id/role', requireAdmin, async (req, res) => {
   try {
     await db.execute('UPDATE users SET role = ? WHERE id = ?', [role, targetId]);
     res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Erro interno do servidor.' });
-  }
-});
-
-// ── PERFIL ─────────────────────────────────────────────────────────────────
-
-// Alterar avatar (autenticado, base64)
-router.put('/profile/avatar', async (req, res) => {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({ error: 'Não autenticado.' });
-  }
-  const { avatar } = req.body;
-  if (!avatar) return res.status(400).json({ error: 'Imagem em falta.' });
-  if (!/^data:image\/(jpeg|png|gif|webp);base64,/.test(avatar)) {
-    return res.status(400).json({ error: 'Formato de imagem inválido. Usa JPG, PNG ou WEBP.' });
-  }
-  if (avatar.length > 400000) {
-    return res.status(400).json({ error: 'Imagem demasiado grande. Máximo 300KB.' });
-  }
-  try {
-    await db.execute('UPDATE users SET avatar = ? WHERE id = ?', [avatar, req.session.userId]);
-    res.json({ success: true, avatar });
   } catch (err) {
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
