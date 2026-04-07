@@ -9,6 +9,19 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
+function validatePassword(password) {
+  if (password.length < 8) return 'Password deve ter pelo menos 8 caracteres.';
+  if (!/[A-Z]/.test(password)) return 'Password deve ter pelo menos uma letra maiúscula.';
+  if (!/[a-z]/.test(password)) return 'Password deve ter pelo menos uma letra minúscula.';
+  if (!/[0-9]/.test(password)) return 'Password deve ter pelo menos um número.';
+  if (!/[^A-Za-z0-9]/.test(password)) return 'Password deve ter pelo menos um carácter especial (ex: !@#$).';
+  return null;
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 // Register
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -19,9 +32,8 @@ router.post('/register', async (req, res) => {
   if (username.length < 3 || username.length > 50) {
     return res.status(400).json({ error: 'Username deve ter entre 3 e 50 caracteres.' });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password deve ter pelo menos 6 caracteres.' });
-  }
+  const pwError = validatePassword(password);
+  if (pwError) return res.status(400).json({ error: pwError });
 
   try {
     const hashed = await bcrypt.hash(password, 12);
@@ -91,11 +103,17 @@ router.post('/logout', (req, res) => {
 });
 
 // Get current user
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
-  res.json({ user: { id: req.session.userId, username: req.session.username } });
+  try {
+    const [rows] = await db.execute('SELECT id, username, email, avatar FROM users WHERE id = ?', [req.session.userId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Utilizador não encontrado.' });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
 });
 
 // Forgot password — envia email com link de recuperação
@@ -116,6 +134,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const user = rows[0];
     const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = hashToken(token);
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
     await db.execute(
@@ -123,8 +142,8 @@ router.post('/forgot-password', async (req, res) => {
       [user.id]
     );
     await db.execute(
-      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-      [user.id, token, expires]
+      'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+      [user.id, tokenHash, expires]
     );
 
     const appUrl = process.env.APP_URL || 'http://localhost:8080';
@@ -158,12 +177,14 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ error: 'Dados inválidos.' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password deve ter pelo menos 6 caracteres.' });
+  const pwError = validatePassword(password);
+  if (pwError) return res.status(400).json({ error: pwError });
 
   try {
+    const tokenHash = hashToken(token);
     const [rows] = await db.execute(
-      'SELECT user_id, expires_at FROM password_reset_tokens WHERE token = ?',
-      [token]
+      'SELECT user_id, expires_at FROM password_reset_tokens WHERE token_hash = ?',
+      [tokenHash]
     );
 
     if (rows.length === 0) {
@@ -172,17 +193,71 @@ router.post('/reset-password', async (req, res) => {
 
     const { user_id, expires_at } = rows[0];
     if (new Date() > new Date(expires_at)) {
-      await db.execute('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+      await db.execute('DELETE FROM password_reset_tokens WHERE token_hash = ?', [tokenHash]);
       return res.status(400).json({ error: 'Link expirado. Pede um novo.' });
     }
 
     const hashed = await bcrypt.hash(password, 12);
     await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashed, user_id]);
-    await db.execute('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+    await db.execute('DELETE FROM password_reset_tokens WHERE token_hash = ?', [tokenHash]);
 
     res.json({ success: true });
   } catch (err) {
     console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
+// Change password (autenticado)
+router.put('/profile/password', async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  }
+  const pwError = validatePassword(newPassword);
+  if (pwError) return res.status(400).json({ error: pwError });
+
+  try {
+    const [rows] = await db.execute('SELECT password FROM users WHERE id = ?', [req.session.userId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Utilizador não encontrado.' });
+
+    const valid = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!valid) return res.status(400).json({ error: 'Password atual incorreta.' });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashed, req.session.userId]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
+// Update avatar (autenticado, base64)
+router.put('/profile/avatar', async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+  const { avatar } = req.body;
+  if (!avatar) return res.status(400).json({ error: 'Imagem em falta.' });
+
+  // Validação: apenas data URLs de imagem, máx ~300KB base64
+  if (!/^data:image\/(jpeg|png|gif|webp);base64,/.test(avatar)) {
+    return res.status(400).json({ error: 'Formato de imagem inválido. Usa JPG, PNG ou WEBP.' });
+  }
+  if (avatar.length > 400000) {
+    return res.status(400).json({ error: 'Imagem demasiado grande. Máximo 300KB.' });
+  }
+
+  try {
+    await db.execute('UPDATE users SET avatar = ? WHERE id = ?', [avatar, req.session.userId]);
+    res.json({ success: true, avatar });
+  } catch (err) {
+    console.error('Avatar update error:', err);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 });

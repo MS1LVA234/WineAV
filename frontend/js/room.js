@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUser) return;
 
   document.getElementById('username-display').textContent = currentUser.username;
+  if (currentUser.avatar) {
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) navAvatar.src = currentUser.avatar;
+  }
   setupLogout();
 
   await loadRoom();
@@ -155,7 +159,7 @@ function renderTop10Item(w, rank) {
           ${[w.region, w.year].filter(Boolean).join(' • ') || ''}
           ${w.chosen_by_name ? ` · Escolhido por ${escapeHtml(w.chosen_by_name)}` : ''}
         </div>
-        <small class="text-muted">${w.rating_count} avaliação${w.rating_count !== 1 ? 'ões' : ''}</small>
+        <small class="text-muted">${w.rating_count} avalia${w.rating_count !== 1 ? 'ções' : 'ção'}</small>
       </div>
       <div class="top10-rating">${parseFloat(w.avg_rating).toFixed(1)}</div>
     </div>`;

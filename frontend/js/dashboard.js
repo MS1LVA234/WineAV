@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUser) return;
 
   document.getElementById('username-display').textContent = currentUser.username;
+  if (currentUser.avatar) {
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) navAvatar.src = currentUser.avatar;
+  }
 
   await loadRooms();
   setupCreateRoom();
