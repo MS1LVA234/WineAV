@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>WineAV – Administração</title>
+  <meta name="theme-color" content="#7B2D3E">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-wine sticky-top">
+    <div class="container-fluid">
+      <a href="/dashboard.html" class="text-white text-decoration-none" style="font-size:1.2rem;">← </a>
+      <span class="navbar-brand mx-auto">🍷 Wine<span>AV</span></span>
+      <div style="width:40px;"></div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h4>👑 Administração</h4>
+    <p>Gestão de utilizadores</p>
+  </div>
+
+  <div class="container-fluid px-3" style="max-width:700px;">
+
+    <div class="card wine-card mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0" style="color:var(--wine-primary);">👥 Utilizadores</h6>
+          <span class="badge" style="background:var(--wine-primary);" id="user-count">–</span>
+        </div>
+        <div id="users-list">
+          <div class="text-center py-4"><span class="spinner-border text-wine"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal de confirmação de eliminação -->
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--wine-primary);color:#fff;">
+          <h5 class="modal-title">Eliminar utilizador</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Tens a certeza que queres eliminar o utilizador <strong id="delete-username"></strong>?
+          <br><small class="text-muted">Esta ação é irreversível e apaga todas as salas e vinhos do utilizador.</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -72,6 +72,7 @@ router.post('/login', async (req, res) => {
 
     req.session.userId = user.id;
     req.session.username = user.username;
+    req.session.userRole = user.role || 'user';
 
     res.json({
       success: true,
@@ -96,7 +97,7 @@ router.get('/me', async (req, res) => {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
   try {
-    const [rows] = await db.execute('SELECT id, username, email, avatar FROM users WHERE id = ?', [req.session.userId]);
+    const [rows] = await db.execute('SELECT id, username, email, avatar, role FROM users WHERE id = ?', [req.session.userId]);
     if (rows.length === 0) return res.status(401).json({ error: 'Não autenticado.' });
     res.json({ user: rows[0] });
   } catch (err) {
@@ -217,6 +218,61 @@ router.put('/profile/password', async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 });
+
+// ── ADMIN ──────────────────────────────────────────────────────────────────
+
+function requireAdmin(req, res, next) {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+  if (req.session.userRole !== 'admin') {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  next();
+}
+
+// Listar todos os utilizadores (admin)
+router.get('/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+    );
+    res.json({ users: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
+// Apagar utilizador (admin, não pode apagar a si próprio)
+router.delete('/admin/users/:id', requireAdmin, async (req, res) => {
+  const targetId = parseInt(req.params.id, 10);
+  if (targetId === req.session.userId) {
+    return res.status(400).json({ error: 'Não podes apagar a tua própria conta.' });
+  }
+  try {
+    await db.execute('DELETE FROM users WHERE id = ?', [targetId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
+// Promover utilizador a admin
+router.put('/admin/users/:id/role', requireAdmin, async (req, res) => {
+  const targetId = parseInt(req.params.id, 10);
+  const { role } = req.body;
+  if (!['user', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Role inválido.' });
+  }
+  try {
+    await db.execute('UPDATE users SET role = ? WHERE id = ?', [role, targetId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
+
+// ── PERFIL ─────────────────────────────────────────────────────────────────
 
 // Alterar avatar (autenticado, base64)
 router.put('/profile/avatar', async (req, res) => {

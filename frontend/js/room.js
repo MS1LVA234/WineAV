@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const navAvatar = document.getElementById('nav-avatar');
     if (navAvatar) navAvatar.src = currentUser.avatar;
   }
+  if (currentUser.role === 'admin') {
+    const adminLink = document.getElementById('admin-nav-link');
+    if (adminLink) adminLink.classList.remove('d-none');
+  }
   setupLogout();
 
   await loadRoom();
