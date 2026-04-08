@@ -226,18 +226,20 @@ router.put('/profile/info', async (req, res) => {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
   const { username, email } = req.body;
-  if (!username || !email) {
-    return res.status(400).json({ error: 'Username e email são obrigatórios.' });
+  if (!username && !email) {
+    return res.status(400).json({ error: 'Indica pelo menos username ou email.' });
   }
-  if (username.length < 3 || username.length > 50) {
+  if (username !== undefined && (username.length < 3 || username.length > 50)) {
     return res.status(400).json({ error: 'Username deve ter entre 3 e 50 caracteres.' });
   }
   try {
-    await db.execute(
-      'UPDATE users SET username = ?, email = ? WHERE id = ?',
-      [username.trim(), email.trim().toLowerCase(), req.session.userId]
-    );
-    req.session.username = username.trim();
+    const fields = [];
+    const values = [];
+    if (username !== undefined) { fields.push('username = ?'); values.push(username.trim()); }
+    if (email !== undefined) { fields.push('email = ?'); values.push(email.trim().toLowerCase()); }
+    values.push(req.session.userId);
+    await db.execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values);
+    if (username !== undefined) req.session.username = username.trim();
     res.json({ success: true });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
