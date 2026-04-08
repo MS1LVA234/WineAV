@@ -32,71 +32,76 @@
 
   <div class="container-fluid px-3" style="max-width:480px;">
 
-    <!-- Nome de utilizador -->
+    <!-- Info atual -->
     <div class="card wine-card mb-3">
       <div class="card-body">
-        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">👤 Nome de Utilizador</h6>
-        <p class="text-muted small mb-1">Nome atual</p>
-        <p class="fw-bold fs-5 mb-3" id="current-username-display">—</p>
-        <button class="btn btn-outline-wine w-100" id="edit-username-btn">✏️ Mudar Nome de Utilizador</button>
-        <div id="username-edit-area" class="d-none mt-3">
-          <div class="mb-3">
-            <label class="form-label" for="profile-username">Novo nome de utilizador</label>
-            <input type="text" class="form-control" id="profile-username" minlength="3" maxlength="50" autocomplete="username">
-          </div>
-          <div id="info-error" class="alert alert-danger py-2 d-none"></div>
-          <div id="info-success" class="alert alert-success py-2 d-none">Nome atualizado com sucesso!</div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-wine flex-fill" id="info-save-btn">Confirmar</button>
-            <button class="btn btn-outline-secondary flex-fill" id="info-cancel-btn">Cancelar</button>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <div style="font-size:2.5rem;">👤</div>
+          <div>
+            <div class="fw-bold fs-5" id="current-username-display">—</div>
+            <div class="text-muted small" id="current-email-display">—</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Email -->
+    <!-- 3 botões de ação -->
     <div class="card wine-card mb-3">
-      <div class="card-body">
-        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">📧 Email</h6>
-        <p class="text-muted small mb-1">Email atual</p>
-        <p class="fw-bold mb-3" id="current-email-display">—</p>
-        <button class="btn btn-outline-wine w-100" id="edit-email-btn">✏️ Mudar Email</button>
-        <div id="email-edit-area" class="d-none mt-3">
-          <div class="mb-3">
-            <label class="form-label" for="profile-email">Novo email</label>
-            <input type="email" class="form-control" id="profile-email" autocomplete="email">
-          </div>
-          <div id="email-error" class="alert alert-danger py-2 d-none"></div>
-          <div id="email-success" class="alert alert-success py-2 d-none">Email atualizado com sucesso!</div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-wine flex-fill" id="email-save-btn">Confirmar</button>
-            <button class="btn btn-outline-secondary flex-fill" id="email-cancel-btn">Cancelar</button>
+      <div class="card-body p-0">
+
+        <!-- Mudar nome -->
+        <div class="border-bottom">
+          <button class="btn w-100 text-start px-3 py-3 d-flex justify-content-between align-items-center" id="btn-toggle-username" style="border:none;background:none;">
+            <span>👤 Mudar nome de utilizador</span>
+            <span id="arrow-username" style="font-size:.8rem;">▼</span>
+          </button>
+          <div id="form-username" class="d-none px-3 pb-3">
+            <input type="text" class="form-control mb-2" id="input-username" placeholder="Novo nome" minlength="3" maxlength="50" autocomplete="username">
+            <div id="err-username" class="alert alert-danger py-2 d-none small"></div>
+            <div id="ok-username" class="alert alert-success py-2 d-none small">Nome atualizado!</div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-wine flex-fill" id="save-username">Confirmar</button>
+              <button class="btn btn-outline-secondary flex-fill" id="cancel-username">Cancelar</button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Alterar password -->
-    <div class="card wine-card mb-3">
-      <div class="card-body">
-        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">🔒 Alterar Password</h6>
-        <form id="change-password-form">
-          <div class="mb-3">
-            <label class="form-label" for="current-password">Password atual</label>
-            <input type="password" class="form-control" id="current-password" required autocomplete="current-password">
+        <!-- Mudar email -->
+        <div class="border-bottom">
+          <button class="btn w-100 text-start px-3 py-3 d-flex justify-content-between align-items-center" id="btn-toggle-email" style="border:none;background:none;">
+            <span>📧 Mudar email</span>
+            <span id="arrow-email" style="font-size:.8rem;">▼</span>
+          </button>
+          <div id="form-email" class="d-none px-3 pb-3">
+            <input type="email" class="form-control mb-2" id="input-email" placeholder="Novo email" autocomplete="email">
+            <div id="err-email" class="alert alert-danger py-2 d-none small"></div>
+            <div id="ok-email" class="alert alert-success py-2 d-none small">Email atualizado!</div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-wine flex-fill" id="save-email">Confirmar</button>
+              <button class="btn btn-outline-secondary flex-fill" id="cancel-email">Cancelar</button>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="new-password">Nova password</label>
-            <input type="password" class="form-control" id="new-password" required autocomplete="new-password">
+        </div>
+
+        <!-- Mudar password -->
+        <div>
+          <button class="btn w-100 text-start px-3 py-3 d-flex justify-content-between align-items-center" id="btn-toggle-password" style="border:none;background:none;">
+            <span>🔒 Mudar password</span>
+            <span id="arrow-password" style="font-size:.8rem;">▼</span>
+          </button>
+          <div id="form-password" class="d-none px-3 pb-3">
+            <input type="password" class="form-control mb-2" id="current-password" placeholder="Password atual" autocomplete="current-password">
+            <input type="password" class="form-control mb-2" id="new-password" placeholder="Nova password" autocomplete="new-password">
+            <input type="password" class="form-control mb-2" id="confirm-password" placeholder="Confirmar nova password" autocomplete="new-password">
+            <div id="err-password" class="alert alert-danger py-2 d-none small"></div>
+            <div id="ok-password" class="alert alert-success py-2 d-none small">Password alterada!</div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-wine flex-fill" id="save-password">Confirmar</button>
+              <button class="btn btn-outline-secondary flex-fill" id="cancel-password">Cancelar</button>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="confirm-password">Confirmar nova password</label>
-            <input type="password" class="form-control" id="confirm-password" required autocomplete="new-password">
-          </div>
-          <div id="pw-error" class="alert alert-danger py-2 d-none"></div>
-          <div id="pw-success" class="alert alert-success py-2 d-none">Password alterada com sucesso!</div>
-          <button type="submit" class="btn btn-wine w-100" id="pw-save-btn">Alterar Password</button>
-        </form>
+        </div>
+
       </div>
     </div>
 

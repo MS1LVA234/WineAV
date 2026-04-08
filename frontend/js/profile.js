@@ -1,180 +1,162 @@
-document.addEventListener('DOMContentLoaded', async () => {
+﻿document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkAuth();
   if (!user) return;
 
-  const navbarUsername = document.getElementById('navbar-username');
-  const currentUsernameDisplay = document.getElementById('current-username-display');
-  const currentEmailDisplay = document.getElementById('current-email-display');
+  document.getElementById('navbar-username').textContent = user.username || '';
+  document.getElementById('current-username-display').textContent = user.username || '';
+  document.getElementById('current-email-display').textContent = user.email || '';
 
-  if (navbarUsername) navbarUsername.textContent = user.username || '';
-  if (currentUsernameDisplay) currentUsernameDisplay.textContent = user.username || '';
-  if (currentEmailDisplay) currentEmailDisplay.textContent = user.email || '';
+  setupToggle('username');
+  setupToggle('email');
+  setupToggle('password');
 
-  setupUsernameEdit();
-  setupEmailEdit();
-  setupPasswordChange();
+  setupSaveUsername();
+  setupSaveEmail();
+  setupSavePassword();
 });
 
-function setupUsernameEdit() {
-  const editBtn = document.getElementById('edit-username-btn');
-  const cancelBtn = document.getElementById('info-cancel-btn');
-  const saveBtn = document.getElementById('info-save-btn');
-  const editArea = document.getElementById('username-edit-area');
-  const input = document.getElementById('profile-username');
-  const errEl = document.getElementById('info-error');
-  const successEl = document.getElementById('info-success');
-  const currentDisplay = document.getElementById('current-username-display');
-  const navbarUsername = document.getElementById('navbar-username');
+function setupToggle(name) {
+  const btn = document.getElementById(`btn-toggle-${name}`);
+  const form = document.getElementById(`form-${name}`);
+  const arrow = document.getElementById(`arrow-${name}`);
+  const cancel = document.getElementById(`cancel-${name}`);
 
-  editBtn.addEventListener('click', () => {
-    input.value = currentDisplay.textContent;
-    editArea.classList.remove('d-none');
-    editBtn.classList.add('d-none');
-    errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
-    input.focus();
+  btn.addEventListener('click', () => {
+    const isOpen = !form.classList.contains('d-none');
+    ['username', 'email', 'password'].forEach(n => {
+      document.getElementById(`form-${n}`).classList.add('d-none');
+      document.getElementById(`arrow-${n}`).textContent = '▼';
+    });
+    if (!isOpen) {
+      form.classList.remove('d-none');
+      arrow.textContent = '▲';
+    }
   });
 
-  cancelBtn.addEventListener('click', () => {
-    editArea.classList.add('d-none');
-    editBtn.classList.remove('d-none');
-    errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
+  cancel.addEventListener('click', () => {
+    form.classList.add('d-none');
+    arrow.textContent = '▼';
+    document.getElementById(`err-${name}`).classList.add('d-none');
+    document.getElementById(`ok-${name}`).classList.add('d-none');
+  });
+}
+
+function setupSaveUsername() {
+  const saveBtn = document.getElementById('save-username');
+  const input = document.getElementById('input-username');
+  const errEl = document.getElementById('err-username');
+  const okEl = document.getElementById('ok-username');
+  const display = document.getElementById('current-username-display');
+  const navbar = document.getElementById('navbar-username');
+
+  document.getElementById('btn-toggle-username').addEventListener('click', () => {
+    if (document.getElementById('form-username').classList.contains('d-none')) return;
+    input.value = display.textContent;
+    input.focus();
   });
 
   saveBtn.addEventListener('click', async () => {
     errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
-
-    const newUsername = input.value.trim();
-    if (!newUsername || newUsername.length < 3) {
+    okEl.classList.add('d-none');
+    const val = input.value.trim();
+    if (val.length < 3) {
       errEl.textContent = 'O nome deve ter pelo menos 3 caracteres.';
       errEl.classList.remove('d-none');
       return;
     }
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'A guardar...';
-
+    saveBtn.disabled = true; saveBtn.textContent = 'A guardar...';
     try {
-      await apiCall('PUT', '/auth/profile/info', { username: newUsername });
-      currentDisplay.textContent = newUsername;
-      if (navbarUsername) navbarUsername.textContent = newUsername;
-      const currentUser = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
-      currentUser.username = newUsername;
-      sessionStorage.setItem('wineav_user', JSON.stringify(currentUser));
-      successEl.classList.remove('d-none');
-      setTimeout(() => {
-        editArea.classList.add('d-none');
-        editBtn.classList.remove('d-none');
-        successEl.classList.add('d-none');
-      }, 1500);
+      await apiCall('PUT', '/auth/profile/info', { username: val });
+      display.textContent = val;
+      navbar.textContent = val;
+      const u = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
+      u.username = val;
+      sessionStorage.setItem('wineav_user', JSON.stringify(u));
+      okEl.classList.remove('d-none');
+      setTimeout(() => { document.getElementById('cancel-username').click(); }, 1500);
     } catch (err) {
       errEl.textContent = err.message;
       errEl.classList.remove('d-none');
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Confirmar';
+      saveBtn.disabled = false; saveBtn.textContent = 'Confirmar';
     }
   });
 }
 
-function setupEmailEdit() {
-  const editBtn = document.getElementById('edit-email-btn');
-  const cancelBtn = document.getElementById('email-cancel-btn');
-  const saveBtn = document.getElementById('email-save-btn');
-  const editArea = document.getElementById('email-edit-area');
-  const input = document.getElementById('profile-email');
-  const errEl = document.getElementById('email-error');
-  const successEl = document.getElementById('email-success');
-  const currentDisplay = document.getElementById('current-email-display');
+function setupSaveEmail() {
+  const saveBtn = document.getElementById('save-email');
+  const input = document.getElementById('input-email');
+  const errEl = document.getElementById('err-email');
+  const okEl = document.getElementById('ok-email');
+  const display = document.getElementById('current-email-display');
 
-  editBtn.addEventListener('click', () => {
-    input.value = currentDisplay.textContent;
-    editArea.classList.remove('d-none');
-    editBtn.classList.add('d-none');
-    errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
+  document.getElementById('btn-toggle-email').addEventListener('click', () => {
+    if (document.getElementById('form-email').classList.contains('d-none')) return;
+    input.value = display.textContent;
     input.focus();
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    editArea.classList.add('d-none');
-    editBtn.classList.remove('d-none');
-    errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
   });
 
   saveBtn.addEventListener('click', async () => {
     errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
-
-    const newEmail = input.value.trim();
-    if (!newEmail || !newEmail.includes('@')) {
-      errEl.textContent = 'Introduz um email válido.';
+    okEl.classList.add('d-none');
+    const val = input.value.trim();
+    if (!val.includes('@')) {
+      errEl.textContent = 'Introduz um email valido.';
       errEl.classList.remove('d-none');
       return;
     }
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'A guardar...';
-
+    saveBtn.disabled = true; saveBtn.textContent = 'A guardar...';
     try {
-      await apiCall('PUT', '/auth/profile/info', { email: newEmail });
-      currentDisplay.textContent = newEmail;
-      const currentUser = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
-      currentUser.email = newEmail;
-      sessionStorage.setItem('wineav_user', JSON.stringify(currentUser));
-      successEl.classList.remove('d-none');
-      setTimeout(() => {
-        editArea.classList.add('d-none');
-        editBtn.classList.remove('d-none');
-        successEl.classList.add('d-none');
-      }, 1500);
+      await apiCall('PUT', '/auth/profile/info', { email: val });
+      display.textContent = val;
+      const u = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
+      u.email = val;
+      sessionStorage.setItem('wineav_user', JSON.stringify(u));
+      okEl.classList.remove('d-none');
+      setTimeout(() => { document.getElementById('cancel-email').click(); }, 1500);
     } catch (err) {
       errEl.textContent = err.message;
       errEl.classList.remove('d-none');
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Confirmar';
+      saveBtn.disabled = false; saveBtn.textContent = 'Confirmar';
     }
   });
 }
 
-function setupPasswordChange() {
-  const form = document.getElementById('change-password-form');
-  const errEl = document.getElementById('pw-error');
-  const successEl = document.getElementById('pw-success');
-  const btn = document.getElementById('pw-save-btn');
+function setupSavePassword() {
+  const saveBtn = document.getElementById('save-password');
+  const errEl = document.getElementById('err-password');
+  const okEl = document.getElementById('ok-password');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  saveBtn.addEventListener('click', async () => {
     errEl.classList.add('d-none');
-    successEl.classList.add('d-none');
-
-    const currentPassword = document.getElementById('current-password').value;
-    const newPassword = document.getElementById('new-password').value;
-    const confirmPassword = document.getElementById('confirm-password').value;
-
-    if (newPassword !== confirmPassword) {
-      errEl.textContent = 'As passwords não coincidem.';
+    okEl.classList.add('d-none');
+    const current = document.getElementById('current-password').value;
+    const newPw = document.getElementById('new-password').value;
+    const confirm = document.getElementById('confirm-password').value;
+    if (!current || !newPw) {
+      errEl.textContent = 'Preenche todos os campos.';
       errEl.classList.remove('d-none');
       return;
     }
-
-    btn.disabled = true;
-    btn.textContent = 'A alterar...';
-
+    if (newPw !== confirm) {
+      errEl.textContent = 'As passwords nao coincidem.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+    saveBtn.disabled = true; saveBtn.textContent = 'A guardar...';
     try {
-      await apiCall('PUT', '/auth/profile/password', { currentPassword, newPassword });
-      successEl.classList.remove('d-none');
-      form.reset();
+      await apiCall('PUT', '/auth/profile/password', { currentPassword: current, newPassword: newPw });
+      okEl.classList.remove('d-none');
+      document.getElementById('current-password').value = '';
+      document.getElementById('new-password').value = '';
+      document.getElementById('confirm-password').value = '';
+      setTimeout(() => { document.getElementById('cancel-password').click(); }, 1500);
     } catch (err) {
       errEl.textContent = err.message;
       errEl.classList.remove('d-none');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Alterar Password';
+      saveBtn.disabled = false; saveBtn.textContent = 'Confirmar';
     }
   });
 }

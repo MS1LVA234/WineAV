@@ -242,6 +242,7 @@ router.put('/profile/info', async (req, res) => {
     if (username !== undefined) req.session.username = username.trim();
     res.json({ success: true });
   } catch (err) {
+    console.error('Profile info error:', err);
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'Username ou email já existe.' });
     }
