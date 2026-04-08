@@ -2,6 +2,7 @@
 let currentUser = null;
 let wineId = null;
 let roomId = null;
+let labelImageBase64 = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   wineId = getParam('wineId');
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('back-link').href = `/room.html?id=${roomId}`;
 
   await loadRoomAndWine();
+  setupLabelUpload();
   setupForm();
   setupDelete();
   setupLogout();
@@ -55,6 +57,18 @@ async function loadRoomAndWine() {
     form.preco.value = w.preco || '';
     if (w.chosen_by) select.value = w.chosen_by;
 
+    // Pre-populate image if exists
+    if (w.image) {
+      labelImageBase64 = w.image;
+      const preview = document.getElementById('label-preview');
+      const placeholder = document.getElementById('label-upload-placeholder');
+      const removeBtn = document.getElementById('label-remove-btn');
+      preview.src = w.image;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      removeBtn.classList.remove('d-none');
+    }
+
     // Only show delete button to the user who added the wine
     if (w.added_by === currentUser.id) {
       document.getElementById('delete-btn').classList.remove('d-none');
@@ -82,7 +96,8 @@ function setupForm() {
       tempo_estagio: form.tempo_estagio.value.trim() || null,
       volume_alcool: form.volume_alcool.value || null,
       preco: form.preco.value || null,
-      chosen_by: form.chosen_by.value || null
+      chosen_by: form.chosen_by.value || null,
+      image: labelImageBase64
     };
 
     try {
@@ -120,6 +135,39 @@ function setupDelete() {
       btn.disabled = false;
       btn.textContent = 'Eliminar';
     }
+  });
+}
+
+function setupLabelUpload() {
+  const input = document.getElementById('label-file-input');
+  const preview = document.getElementById('label-preview');
+  const placeholder = document.getElementById('label-upload-placeholder');
+  const removeBtn = document.getElementById('label-remove-btn');
+
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('A imagem deve ter menos de 3MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      labelImageBase64 = e.target.result;
+      preview.src = labelImageBase64;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      removeBtn.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeBtn.addEventListener('click', () => {
+    labelImageBase64 = null;
+    preview.src = ''; preview.style.display = 'none';
+    placeholder.style.display = 'block';
+    removeBtn.classList.add('d-none');
+    input.value = '';
   });
 }
 

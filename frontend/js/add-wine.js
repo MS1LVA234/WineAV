@@ -1,6 +1,7 @@
 // Add wine form
 let currentUser = null;
 let roomId = null;
+let labelImageBase64 = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   roomId = getParam('roomId');
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('back-link').href = `/room.html?id=${roomId}`;
 
   await loadRoomMembers();
+  setupLabelUpload();
   setupForm();
   setupLogout();
 });
@@ -39,6 +41,40 @@ async function loadRoomMembers() {
   }
 }
 
+function setupLabelUpload() {
+  const input = document.getElementById('label-file-input');
+  const preview = document.getElementById('label-preview');
+  const placeholder = document.getElementById('label-upload-placeholder');
+  const removeBtn = document.getElementById('label-remove-btn');
+
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('A imagem deve ter menos de 3MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      labelImageBase64 = e.target.result;
+      preview.src = labelImageBase64;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      removeBtn.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeBtn.addEventListener('click', () => {
+    labelImageBase64 = null;
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+    removeBtn.classList.add('d-none');
+    input.value = '';
+  });
+}
+
 function setupForm() {
   const form = document.getElementById('addWineForm');
   form.addEventListener('submit', async (e) => {
@@ -57,7 +93,8 @@ function setupForm() {
       tempo_estagio: form.tempo_estagio.value.trim() || null,
       volume_alcool: form.volume_alcool.value || null,
       preco: form.preco.value || null,
-      chosen_by: form.chosen_by.value || null
+      chosen_by: form.chosen_by.value || null,
+      image: labelImageBase64 || null
     };
 
     try {

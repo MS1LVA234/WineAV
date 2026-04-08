@@ -163,6 +163,7 @@ function renderWineCard(w) {
         </div>
       </div>
       <div class="card-body pb-2">
+        ${w.image ? `<img src="${w.image}" class="img-fluid rounded mb-2" style="max-height:160px;object-fit:cover;width:100%;" alt="Rótulo">` : ''}
         <div class="collapse" id="details-${w.id}">
           ${detailRows}
           <hr class="my-2">

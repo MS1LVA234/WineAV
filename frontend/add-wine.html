@@ -90,6 +90,19 @@
             <div class="form-text">Quem escolheu este vinho para a prova?</div>
           </div>
 
+          <div class="mb-4">
+            <label class="form-label">Foto do Rótulo</label>
+            <div id="label-upload-area" style="border:2px dashed #c9a0b0;border-radius:12px;padding:1rem;text-align:center;cursor:pointer;background:#fdf8fb;" onclick="document.getElementById('label-file-input').click()">
+              <img id="label-preview" src="" alt="" style="max-width:100%;max-height:200px;border-radius:8px;display:none;margin-bottom:0.5rem;">
+              <div id="label-upload-placeholder">
+                <div style="font-size:2rem;">📷</div>
+                <div class="text-muted small">Toca para adicionar foto do rótulo</div>
+              </div>
+            </div>
+            <input type="file" id="label-file-input" accept="image/*" class="d-none">
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none" id="label-remove-btn">✕ Remover foto</button>
+          </div>
+
           <div id="form-error" class="alert alert-danger py-2 d-none"></div>
 
           <button type="submit" class="btn btn-wine w-100 py-3 fw-semibold fs-5">

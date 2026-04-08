@@ -146,8 +146,8 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     const [result] = await db.execute(
-      `INSERT INTO wines (room_id, name, region, year, castas, tempo_estagio, volume_alcool, preco, chosen_by, added_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO wines (room_id, name, region, year, castas, tempo_estagio, volume_alcool, preco, image, chosen_by, added_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         roomId,
         name.trim(),
@@ -157,6 +157,7 @@ router.post('/', requireAuth, async (req, res) => {
         tempo_estagio ? tempo_estagio.trim() : null,
         parsedAlcool,
         parsedPreco,
+        image || null,
         parsedChosenBy,
         req.session.userId
       ]
@@ -174,7 +175,7 @@ router.put('/:wineId', requireAuth, async (req, res) => {
   const roomId = parseInt(req.params.roomId, 10);
   if (isNaN(wineId) || isNaN(roomId)) return res.status(400).json({ error: 'ID inválido.' });
 
-  const { name, region, year, castas, tempo_estagio, volume_alcool, preco, chosen_by } = req.body;
+  const { name, region, year, castas, tempo_estagio, volume_alcool, preco, chosen_by, image } = req.body;
 
   if (!name || name.trim() === '') {
     return res.status(400).json({ error: 'Nome do vinho é obrigatório.' });
@@ -198,7 +199,7 @@ router.put('/:wineId', requireAuth, async (req, res) => {
     }
 
     await db.execute(
-      `UPDATE wines SET name=?, region=?, year=?, castas=?, tempo_estagio=?, volume_alcool=?, preco=?, chosen_by=?
+      `UPDATE wines SET name=?, region=?, year=?, castas=?, tempo_estagio=?, volume_alcool=?, preco=?, image=?, chosen_by=?
        WHERE id=?`,
       [
         name.trim(),
@@ -208,6 +209,7 @@ router.put('/:wineId', requireAuth, async (req, res) => {
         tempo_estagio ? tempo_estagio.trim() : null,
         parsedAlcool,
         parsedPreco,
+        image !== undefined ? (image || null) : null,
         parsedChosenBy,
         wineId
       ]
