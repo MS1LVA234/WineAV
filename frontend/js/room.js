@@ -153,6 +153,7 @@ function renderWineCard(w) {
   return `
     <div class="wine-card card mb-3" id="wine-card-${w.id}">
       <div class="card-header-custom d-flex align-items-start justify-content-between gap-2">
+        ${w.image ? `<img src="${w.image}" alt="Rótulo" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#details-${w.id}">` : ''}
         <div style="flex:1;min-width:0;">
           <p class="wine-name">${escapeHtml(w.name)}</p>
           <p class="wine-year-region">${[w.region, w.year].filter(Boolean).join(' • ') || 'Sem região/ano'}</p>
@@ -163,8 +164,8 @@ function renderWineCard(w) {
         </div>
       </div>
       <div class="card-body pb-2">
-        ${w.image ? `<img src="${w.image}" class="img-fluid rounded mb-2" style="max-height:160px;object-fit:cover;width:100%;" alt="Rótulo">` : ''}
         <div class="collapse" id="details-${w.id}">
+          ${w.image ? `<img src="${w.image}" class="img-fluid rounded mb-2" style="max-height:300px;object-fit:contain;width:100%;" alt="Rótulo">` : ''}
           ${detailRows}
           <hr class="my-2">
         </div>
