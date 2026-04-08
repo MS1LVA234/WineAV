@@ -102,15 +102,23 @@ function setupForm() {
 }
 
 function setupDelete() {
-  document.getElementById('delete-btn').addEventListener('click', async () => {
-    if (!confirm('Tens a certeza que queres eliminar este vinho? Esta ação não pode ser desfeita.')) return;
+  document.getElementById('delete-btn').addEventListener('click', () => {
+    new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+  });
 
+  document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'A eliminar...';
     try {
       await apiCall('DELETE', `/rooms/${roomId}/wines/${wineId}`);
       showToast('Vinho eliminado.');
       setTimeout(() => { window.location.href = `/room.html?id=${roomId}`; }, 800);
     } catch (err) {
+      bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
       showToast(err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Eliminar';
     }
   });
 }

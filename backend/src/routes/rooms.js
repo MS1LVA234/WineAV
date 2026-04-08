@@ -100,6 +100,30 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// Leave room
+router.delete('/:id/leave', requireAuth, async (req, res) => {
+  const roomId = parseInt(req.params.id, 10);
+  if (isNaN(roomId)) return res.status(400).json({ error: 'ID inválido.' });
+
+  try {
+    const [rooms] = await db.execute('SELECT created_by FROM rooms WHERE id = ?', [roomId]);
+    if (rooms.length === 0) return res.status(404).json({ error: 'Sala não encontrada.' });
+    if (rooms[0].created_by === req.session.userId) {
+      return res.status(403).json({ error: 'És o criador da sala. Não podes sair — tens de eliminar a sala.' });
+    }
+
+    const [result] = await db.execute(
+      'DELETE FROM room_members WHERE room_id = ? AND user_id = ?',
+      [roomId, req.session.userId]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Não és membro desta sala.' });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao sair da sala.' });
+  }
+});
+
 // Get room details + members
 router.get('/:id', requireAuth, async (req, res) => {
   const roomId = parseInt(req.params.id, 10);

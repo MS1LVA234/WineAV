@@ -4,6 +4,7 @@ let roomId = null;
 let roomData = null;
 let winesData = [];
 let activeRatingWineId = null;
+let pollInterval = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   roomId = getParam('id');
@@ -24,9 +25,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupRatingModal();
   setupRatingsListModal();
   setupMembersModal();
+  setupLeaveRoom();
+  startPolling();
 
   document.getElementById('tab-wines').addEventListener('click', loadWines);
   document.getElementById('tab-top10').addEventListener('click', loadTop10);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopPolling(); else startPolling();
+  });
 });
 
 async function loadRoom() {
@@ -39,6 +46,7 @@ async function loadRoom() {
     document.getElementById('invite-code').textContent = data.room.invite_code;
     document.getElementById('member-count').textContent = data.members.length;
     document.title = `WineAV – ${data.room.name}`;
+    document.dispatchEvent(new Event('roomLoaded'));
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -67,6 +75,36 @@ async function loadWines() {
   } catch (err) {
     container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
   }
+}
+
+async function silentLoadWines() {
+  // Não atualizar se um modal estiver aberto
+  if (document.querySelector('.modal.show')) return;
+  // Só atualizar se o tab de vinhos estiver ativo
+  const winesTab = document.getElementById('tab-wines');
+  if (!winesTab || !winesTab.classList.contains('active')) return;
+
+  try {
+    const data = await apiCall('GET', `/rooms/${roomId}/wines`);
+    if (!data) return;
+    const newHash = JSON.stringify(data.wines.map(w => ({ id: w.id, avg_rating: w.avg_rating, rating_count: w.rating_count, my_rating: w.my_rating })));
+    const oldHash = JSON.stringify(winesData.map(w => ({ id: w.id, avg_rating: w.avg_rating, rating_count: w.rating_count, my_rating: w.my_rating })));
+    if (newHash !== oldHash) {
+      winesData = data.wines;
+      document.getElementById('wines-container').innerHTML = data.wines.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">🍾</div><p class="fw-semibold">Sem vinhos ainda</p><p class="small">Adiciona o primeiro vinho desta sala!</p></div>`
+        : data.wines.map(w => renderWineCard(w)).join('');
+    }
+  } catch { /* silencioso */ }
+}
+
+function startPolling() {
+  stopPolling();
+  pollInterval = setInterval(silentLoadWines, 30000);
+}
+
+function stopPolling() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
 }
 
 async function loadTop10() {
@@ -267,6 +305,37 @@ function setupMembersModal() {
   document.getElementById('copy-invite-btn').addEventListener('click', () => {
     if (!roomData) return;
     navigator.clipboard.writeText(roomData.room.invite_code).then(() => showToast('Código copiado!'));
+  });
+}
+
+function setupLeaveRoom() {
+  const leaveBtn = document.getElementById('leave-room-btn');
+  const confirmBtn = document.getElementById('confirm-leave-btn');
+
+  // Mostrar botão só se não for criador (só sabemos depois de loadRoom)
+  document.addEventListener('roomLoaded', () => {
+    if (roomData && roomData.room.created_by !== currentUser.id) {
+      leaveBtn.classList.remove('d-none');
+    }
+  });
+
+  leaveBtn.addEventListener('click', () => {
+    document.getElementById('leave-room-name').textContent = roomData ? roomData.room.name : 'esta sala';
+    new bootstrap.Modal(document.getElementById('leaveRoomModal')).show();
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'A sair...';
+    try {
+      await apiCall('DELETE', `/rooms/${roomId}/leave`);
+      window.location.href = '/dashboard.html';
+    } catch (err) {
+      bootstrap.Modal.getInstance(document.getElementById('leaveRoomModal')).hide();
+      showToast(err.message, 'error');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Sair';
+    }
   });
 }
 

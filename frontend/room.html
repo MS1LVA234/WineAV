@@ -43,6 +43,7 @@
       <div class="d-flex flex-column gap-1">
         <button id="members-btn" class="btn btn-sm btn-outline-light">👥 Membros</button>
         <button id="copy-invite-btn" class="btn btn-sm btn-outline-light">📋 Copiar código</button>
+        <button id="leave-room-btn" class="btn btn-sm btn-outline-danger d-none">🚪 Sair da Sala</button>
       </div>
     </div>
   </div>
@@ -132,6 +133,25 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" id="members-list-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave Room Confirm Modal -->
+  <div class="modal fade" id="leaveRoomModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header" style="background:#dc3545;color:#fff;">
+          <h6 class="modal-title">🚪 Sair da Sala</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Tens a certeza que queres sair de <strong id="leave-room-name"></strong>? Perdes acesso a todos os vinhos desta sala.</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger flex-fill" id="confirm-leave-btn">Sair</button>
+        </div>
       </div>
     </div>
   </div>
