@@ -221,7 +221,10 @@ function renderTop10Item(w, rank) {
       </div>
       <div class="collapse" id="top10-details-${w.id}">
         <div style="padding:0 1rem 0.75rem 1rem;border-top:1px solid rgba(0,0,0,0.07);">
-          ${detailRows}
+          ${w.image ? `<div class="d-flex gap-3 align-items-start">
+            <img src="${w.image}" alt="Rótulo" style="width:90px;flex-shrink:0;border-radius:6px;object-fit:contain;max-height:130px;">
+            <div style="flex:1;">${detailRows}</div>
+          </div>` : detailRows}
         </div>
       </div>
     </div>`;
