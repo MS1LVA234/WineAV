@@ -111,7 +111,7 @@ router.post('/', requireAuth, async (req, res) => {
   const roomId = parseInt(req.params.roomId, 10);
   if (isNaN(roomId)) return res.status(400).json({ error: 'ID inválido.' });
 
-  const { name, region, year, castas, tempo_estagio, volume_alcool, preco, chosen_by } = req.body;
+  const { name, region, year, castas, tempo_estagio, volume_alcool, preco, chosen_by, image } = req.body;
 
   if (!name || name.trim() === '') {
     return res.status(400).json({ error: 'Nome do vinho é obrigatório.' });
