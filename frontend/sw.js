@@ -1,5 +1,5 @@
 // WineAV Service Worker
-const CACHE_NAME = 'wineav-v6';
+const CACHE_NAME = 'wineav-v7';
 
 // Assets to cache on install (app shell)
 const SHELL_ASSETS = [

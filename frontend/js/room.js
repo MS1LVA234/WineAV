@@ -46,7 +46,11 @@ async function loadRoom() {
     document.getElementById('invite-code').textContent = data.room.invite_code;
     document.getElementById('member-count').textContent = data.members.length;
     document.title = `WineAV – ${data.room.name}`;
-    document.dispatchEvent(new Event('roomLoaded'));
+    // Mostrar botao sair se não for criador
+    if (data.room.created_by !== currentUser.id) {
+      const leaveBtn = document.getElementById('leave-room-btn');
+      if (leaveBtn) leaveBtn.classList.remove('d-none');
+    }
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -311,13 +315,6 @@ function setupMembersModal() {
 function setupLeaveRoom() {
   const leaveBtn = document.getElementById('leave-room-btn');
   const confirmBtn = document.getElementById('confirm-leave-btn');
-
-  // Mostrar botão só se não for criador (só sabemos depois de loadRoom)
-  document.addEventListener('roomLoaded', () => {
-    if (roomData && roomData.room.created_by !== currentUser.id) {
-      leaveBtn.classList.remove('d-none');
-    }
-  });
 
   leaveBtn.addEventListener('click', () => {
     document.getElementById('leave-room-name').textContent = roomData ? roomData.room.name : 'esta sala';
