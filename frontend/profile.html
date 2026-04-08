@@ -21,7 +21,7 @@
     <div class="container-fluid">
       <a href="/dashboard.html" class="text-white text-decoration-none" style="font-size:1.2rem;">← </a>
       <span class="navbar-brand mx-auto">🍷 Wine<span>AV</span></span>
-      <div style="width:40px;"></div>
+      <span class="text-white opacity-75 small" id="navbar-username"></span>
     </div>
   </nav>
 
@@ -32,23 +32,25 @@
 
   <div class="container-fluid px-3" style="max-width:480px;">
 
-    <!-- Dados pessoais -->
+    <!-- Nome de utilizador -->
     <div class="card wine-card mb-3">
       <div class="card-body">
-        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">👤 Dados Pessoais</h6>
-        <form id="profile-info-form">
+        <h6 class="fw-bold mb-3" style="color:var(--wine-primary);">👤 Nome de Utilizador</h6>
+        <p class="text-muted small mb-1">Nome atual</p>
+        <p class="fw-bold fs-5 mb-3" id="current-username-display">—</p>
+        <button class="btn btn-outline-wine w-100" id="edit-username-btn">✏️ Mudar Nome de Utilizador</button>
+        <div id="username-edit-area" class="d-none mt-3">
           <div class="mb-3">
-            <label class="form-label" for="profile-username">Username</label>
-            <input type="text" class="form-control" id="profile-username" required minlength="3" maxlength="50" autocomplete="username">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="profile-email">Email</label>
-            <input type="email" class="form-control" id="profile-email" required autocomplete="email">
+            <label class="form-label" for="profile-username">Novo nome de utilizador</label>
+            <input type="text" class="form-control" id="profile-username" minlength="3" maxlength="50" autocomplete="username">
           </div>
           <div id="info-error" class="alert alert-danger py-2 d-none"></div>
-          <div id="info-success" class="alert alert-success py-2 d-none">Dados atualizados com sucesso!</div>
-          <button type="submit" class="btn btn-wine w-100" id="info-save-btn">Guardar Dados</button>
-        </form>
+          <div id="info-success" class="alert alert-success py-2 d-none">Nome atualizado com sucesso!</div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-wine flex-fill" id="info-save-btn">Confirmar</button>
+            <button class="btn btn-outline-secondary flex-fill" id="info-cancel-btn">Cancelar</button>
+          </div>
+        </div>
       </div>
     </div>
 

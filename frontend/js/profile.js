@@ -2,44 +2,79 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkAuth();
   if (!user) return;
 
-  document.getElementById('profile-username').value = user.username || '';
-  document.getElementById('profile-email').value = user.email || '';
+  // Mostrar username na navbar e no display
+  const navbarUsername = document.getElementById('navbar-username');
+  const currentDisplay = document.getElementById('current-username-display');
+  if (navbarUsername) navbarUsername.textContent = user.username || '';
+  if (currentDisplay) currentDisplay.textContent = user.username || '';
 
-  setupInfoForm();
+  setupUsernameEdit(user);
   setupPasswordChange();
 });
 
-function setupInfoForm() {
-  const form = document.getElementById('profile-info-form');
+function setupUsernameEdit(user) {
+  const editBtn = document.getElementById('edit-username-btn');
+  const cancelBtn = document.getElementById('info-cancel-btn');
+  const saveBtn = document.getElementById('info-save-btn');
+  const editArea = document.getElementById('username-edit-area');
+  const input = document.getElementById('profile-username');
   const errEl = document.getElementById('info-error');
   const successEl = document.getElementById('info-success');
-  const btn = document.getElementById('info-save-btn');
+  const currentDisplay = document.getElementById('current-username-display');
+  const navbarUsername = document.getElementById('navbar-username');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  editBtn.addEventListener('click', () => {
+    input.value = currentDisplay.textContent;
+    editArea.classList.remove('d-none');
+    editBtn.classList.add('d-none');
+    errEl.classList.add('d-none');
+    successEl.classList.add('d-none');
+    input.focus();
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    editArea.classList.add('d-none');
+    editBtn.classList.remove('d-none');
+    errEl.classList.add('d-none');
+    successEl.classList.add('d-none');
+  });
+
+  saveBtn.addEventListener('click', async () => {
     errEl.classList.add('d-none');
     successEl.classList.add('d-none');
 
-    const username = document.getElementById('profile-username').value.trim();
-    const email = document.getElementById('profile-email').value.trim();
+    const newUsername = input.value.trim();
+    if (!newUsername || newUsername.length < 3) {
+      errEl.textContent = 'O nome deve ter pelo menos 3 caracteres.';
+      errEl.classList.remove('d-none');
+      return;
+    }
 
-    btn.disabled = true;
-    btn.textContent = 'A guardar...';
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'A guardar...';
 
     try {
-      await apiCall('PUT', '/auth/profile/info', { username, email });
+      const currentUser = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
+      await apiCall('PUT', '/auth/profile/info', { username: newUsername, email: currentUser.email || user.email });
+      // Atualizar displays
+      currentDisplay.textContent = newUsername;
+      if (navbarUsername) navbarUsername.textContent = newUsername;
+      // Atualizar sessionStorage
+      currentUser.username = newUsername;
+      sessionStorage.setItem('wineav_user', JSON.stringify(currentUser));
       successEl.classList.remove('d-none');
-      // Atualizar sessionStorage com novos dados
-      const user = JSON.parse(sessionStorage.getItem('wineav_user') || '{}');
-      user.username = username;
-      user.email = email;
-      sessionStorage.setItem('wineav_user', JSON.stringify(user));
+      // Fechar área de edição após breve delay
+      setTimeout(() => {
+        editArea.classList.add('d-none');
+        editBtn.classList.remove('d-none');
+        successEl.classList.add('d-none');
+      }, 1500);
     } catch (err) {
       errEl.textContent = err.message;
       errEl.classList.remove('d-none');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Guardar Dados';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Confirmar';
     }
   });
 }
