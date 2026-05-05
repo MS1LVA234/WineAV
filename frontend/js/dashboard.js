@@ -35,9 +35,14 @@ async function loadRooms() {
       return;
     }
 
-    container.innerHTML = data.rooms.map(room => `
+    container.innerHTML = '<div class="row">' + data.rooms.map(room => {
+      const isCreator = currentUser && room.created_by === currentUser.id;
+      const actionBtn = isCreator
+        ? `<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();deleteRoom(${room.id},'${escapeHtml(room.name).replace(/'/g, "\\'")}')">🗑 Eliminar</button>`
+        : `<button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();leaveRoom(${room.id},'${escapeHtml(room.name).replace(/'/g, "\\'")}')">🚪 Sair</button>`;
+      return `
       <div class="col-12 col-sm-6">
-        <div class="room-card card p-0 mb-3" onclick="window.location.href='/room.html?id=${room.id}'">
+        <div class="room-card card p-0 mb-3" onclick="window.location.href='/room.html?id=${room.id}'" style="cursor:pointer">
           <div class="room-icon">🍷</div>
           <div class="card-body pt-1">
             <h5 class="fw-700 mb-1">${escapeHtml(room.name)}</h5>
@@ -49,12 +54,13 @@ async function loadRooms() {
               <small class="text-muted">Criada por ${escapeHtml(room.creator_name)}</small>
               <span class="invite-code" style="font-size:0.75rem;padding:2px 8px;">${room.invite_code}</span>
             </div>
+            <div class="d-flex justify-content-end mt-2">
+              ${actionBtn}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
-
-    container.innerHTML = '<div class="row">' + container.innerHTML + '</div>';
+      </div>`;
+    }).join('') + '</div>';
   } catch (err) {
     container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
   }
@@ -118,6 +124,28 @@ function setupLogout() {
     clearUser();
     window.location.href = '/index.html';
   });
+}
+
+async function deleteRoom(id, name) {
+  if (!confirm(`Tens a certeza que queres eliminar a sala "${name}"?\nTodos os vinhos e avaliações serão apagados.`)) return;
+  try {
+    await apiCall('DELETE', `/rooms/${id}`);
+    showToast(`Sala "${name}" eliminada.`);
+    await loadRooms();
+  } catch (err) {
+    showToast(err.message, 'danger');
+  }
+}
+
+async function leaveRoom(id, name) {
+  if (!confirm(`Queres sair da sala "${name}"?`)) return;
+  try {
+    await apiCall('DELETE', `/rooms/${id}/leave`);
+    showToast(`Saíste da sala "${name}".`);
+    await loadRooms();
+  } catch (err) {
+    showToast(err.message, 'danger');
+  }
 }
 
 function escapeHtml(str) {

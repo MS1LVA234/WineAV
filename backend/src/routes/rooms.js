@@ -83,7 +83,7 @@ router.post('/join', requireAuth, async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const [rooms] = await db.execute(
-      `SELECT r.id, r.name, r.invite_code, r.created_at,
+      `SELECT r.id, r.name, r.invite_code, r.created_at, r.created_by,
               u.username AS creator_name,
               (SELECT COUNT(*) FROM room_members rm2 WHERE rm2.room_id = r.id) AS member_count,
               (SELECT COUNT(*) FROM wines w WHERE w.room_id = r.id) AS wine_count
@@ -121,6 +121,25 @@ router.delete('/:id/leave', requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Erro ao sair da sala.' });
+  }
+});
+
+// Delete room (creator only)
+router.delete('/:id', requireAuth, async (req, res) => {
+  const roomId = parseInt(req.params.id, 10);
+  if (isNaN(roomId)) return res.status(400).json({ error: 'ID inválido.' });
+
+  try {
+    const [rooms] = await db.execute('SELECT created_by FROM rooms WHERE id = ?', [roomId]);
+    if (rooms.length === 0) return res.status(404).json({ error: 'Sala não encontrada.' });
+    if (rooms[0].created_by !== req.session.userId) {
+      return res.status(403).json({ error: 'Só o criador da sala pode eliminá-la.' });
+    }
+
+    await db.execute('DELETE FROM rooms WHERE id = ?', [roomId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao eliminar sala.' });
   }
 });
 
