@@ -36,7 +36,7 @@ async function loadRooms() {
     }
 
     container.innerHTML = '<div class="row">' + data.rooms.map(room => {
-      const isCreator = currentUser && room.created_by === currentUser.id;
+      const isCreator = currentUser && Number(room.created_by) === Number(currentUser.id);
       const actionBtn = isCreator
         ? `<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();deleteRoom(${room.id},'${escapeHtml(room.name).replace(/'/g, "\\'")}')">🗑 Eliminar</button>`
         : `<button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();leaveRoom(${room.id},'${escapeHtml(room.name).replace(/'/g, "\\'")}')">🚪 Sair</button>`;
